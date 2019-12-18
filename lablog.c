@@ -27,6 +27,8 @@ int main(int argc, char* argv[]){
 
 	}else if(strcmp("logout", argv[1]) == 0){
 
+	}else if(strcmp("drive", argv[1]) == 0){
+
 	}else if(strcmp("break", argv[1]) == 0){
 
 	}else if(strcmp("print", argv[1]) == 0){
@@ -35,10 +37,8 @@ int main(int argc, char* argv[]){
 
 	}else if(strcmp("config", argv[1]) == 0){
 
-	}else if(strcmp("-h", argv[1]) == 0){
-		print_help_menu();
 	}else{
-
+		print_help_menu();
 	}
 
 
