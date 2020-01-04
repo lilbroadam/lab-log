@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <getopt.h>
 
+FILE * infoFile = NULL;
+FILE * tempInfoFile = NULL;
+FILE * logFile = NULL;
+FILE * tempLogFile = NULL;
+
 int main(int argc, char* argv[]){
 	// display help menu if no arguments are provided
 	if(argc < 2)
 		print_help_menu();
 
 
-	FILE * infoFile = NULL;
-	FILE * tempInfoFile = NULL;
-	FILE * logFile = NULL;
-	FILE * tempLogFile = NULL;
-
 	char username[USERNAMEBUFFERSIZE];
-	open_info_file(infoFile, username);
+	open_info_file(tempInfoFile, infoFile, username);
 	tempInfoFile = fopen(TEMPINFOFILE, "w");
 	write_default_username(tempInfoFile, username);
 
@@ -46,8 +46,8 @@ int main(int argc, char* argv[]){
 }
 
 // open the info file and return the default username read from the file
-void open_info_file(FILE * infoFile, char usernameDestination[]){
-	FILE * tempInfoFile = fopen(TEMPINFOFILE, "r");
+void open_info_file(FILE * tempInfoFile, FILE * infoFile, char usernameDestination[]){
+	tempInfoFile = fopen(TEMPINFOFILE, "r");
 	if(tempInfoFile != NULL){
 		// TODO
 		fprintf(stderr, "temporary file was found at start of program, implement this recovery\n");
@@ -61,7 +61,7 @@ void open_info_file(FILE * infoFile, char usernameDestination[]){
 
 		infoFile = fopen(INFOFILE, "w"); // create the info file
 		if(infoFile == NULL){
-			fprintf(stderr, "Couldn't open %s\n", TEMPINFOFILE);
+			fprintf(stderr, "Couldn't open %s\n", INFOFILE);
 			exit(1);
 		}
 
@@ -81,6 +81,8 @@ void open_info_file(FILE * infoFile, char usernameDestination[]){
 
 		// TODO read past next line to set up for the next read
 	}
+
+	// PICKUP copy info file into temp infofile
 }
 
 void write_default_username(FILE * outputFile, char username[]){
