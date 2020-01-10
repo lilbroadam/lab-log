@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <unistd.h>
+#include <stdbool.h>
 
 FILE * infoFile = NULL;
 FILE * tempInfoFile = NULL;
@@ -17,8 +19,7 @@ int main(int argc, char* argv[]){
 
 	char username[USERNAMEBUFFERSIZE];
 	open_info_file(tempInfoFile, infoFile, username);
-	tempInfoFile = fopen(TEMPINFOFILE, "w");
-	write_default_username(tempInfoFile, username);
+	// write_default_username(tempInfoFile, username);
 
 	logFile = fopen(LOGFILE, "r");
 	tempLogFile = fopen(TEMPLOGFILE, "r");
@@ -41,17 +42,15 @@ int main(int argc, char* argv[]){
 		print_help_menu();
 	}
 
-
 	cleanup_files(infoFile, tempInfoFile, logFile, tempLogFile);
 }
 
-// open the info file and return the default username read from the file
+// open the info file and the temp info file and return the default username read from the file
 void open_info_file(FILE * tempInfoFile, FILE * infoFile, char usernameDestination[]){
-	tempInfoFile = fopen(TEMPINFOFILE, "r");
-	if(tempInfoFile != NULL){
+	// check if temporary info file already exists
+	if(access(TEMPINFOFILE, F_OK) == false){
 		// TODO
 		fprintf(stderr, "temporary file was found at start of program, implement this recovery\n");
-		fclose(tempInfoFile);
 	}
 
 	infoFile = fopen(INFOFILE, "r");
@@ -82,7 +81,13 @@ void open_info_file(FILE * tempInfoFile, FILE * infoFile, char usernameDestinati
 		// TODO read past next line to set up for the next read
 	}
 
-	// PICKUP copy info file into temp infofile
+	// copy info file into temp infofile
+	rewind(infoFile);
+	char buffer[100] = "";
+	tempInfoFile = fopen(TEMPINFOFILE, "w");
+	while(fgets(buffer, 100, infoFile) != NULL){
+		fputs(buffer, tempInfoFile);
+	}
 }
 
 void write_default_username(FILE * outputFile, char username[]){
