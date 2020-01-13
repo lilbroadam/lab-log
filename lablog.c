@@ -45,6 +45,8 @@ int main(int argc, char* argv[]){
 		print_help_menu();
 	}
 
+	// TODO need to free malloc'ed usernames
+
 	cleanup_files(infoFile, tempInfoFile, logFile, tempLogFile);
 }
 
@@ -158,6 +160,28 @@ void file_read_error(char * fileName){
 }
 
 void print_help_menu(){
-	printf("help menu\n"); // TODO
+	printf("lablog help menu:\n");
+	printf("-----------------\n");
+	printf("- lablog login <username>\n");
+	printf("  + log the login of the specified user\n");
+	printf("\n");
+	printf("- lablog logout <username>\n");
+	printf("  + log the logout of the specified user\n");
+	printf("\n");
+	printf("- lablog drive <username>\n");
+	printf("  + log the specified user as starting to drive\n");
+	printf("\n");
+	printf("- lablog break <username>\n");
+	printf("  + toggle the specified user taking a break\n");
+	printf("\n");
+	printf("- lablog print\n");
+	printf("  + print the current log\n");
+	printf("\n");
+	printf("- lablog report\n");
+	printf("  + export the log into a txt file\n");
+	printf("\n");
+	printf("- lablog config [setting]\n");
+	printf("  + change differ settings\n"); // TODO update this as config becomes more defined
+	printf("\n");
 	exit(0);
 }
