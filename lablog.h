@@ -7,7 +7,7 @@
 #define TEMPLOGFILE "log.lablog.tmp"
 #define USERNAMEBUFFERSIZE 30
 
-char ** open_and_read_info_file(FILE *, FILE *, int *);
+char ** get_usernames(int *);
 void write_default_username(FILE *, char[]);
 void cleanup_files(FILE *, FILE *, FILE *, FILE *);
 
