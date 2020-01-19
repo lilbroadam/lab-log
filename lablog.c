@@ -136,7 +136,9 @@ void info_file_not_found(){
 	fputs("# usernames\n", infoFile);
 	fputs("1\n", infoFile);
 	fprintf(infoFile, "%s\n", providedUsername);
-	fclose(infoFile);
+	// an extra \n is here for some reason
+	fputs("# logs\n", infoFile);
+	fputs("\n", infoFile); // FIXME this extra \n might not be needed
 
 	printf("%s created. Please try your previous command again.\n", INFOFILE);
 	exit(0);
