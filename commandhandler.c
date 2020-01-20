@@ -14,9 +14,9 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 		char * registeredUsernames[], int numRegisteredUsernames){
 	// TODO place holder to make sure function is being called; delete this print later
 	printf("logging in: ");
-	for(int i = 0; i < numLoginUsernames; i++)
+	for(int i = 0; i < numLoginUsernames - 1; i++)
 		printf("%s, ", loginUsernames[i]);
-	printf("\n");
+	printf("%s\n", loginUsernames[numLoginUsernames - 1]);
 
 	// forward past the username info
 	skip_username_info(infoFile, tempFile);
@@ -26,24 +26,26 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 
 	// for each session logged,
 	char fileLineBuffer[FILELINEBUFFERSIZE] = "\0";
-	// if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
-	// 	file_read_error(INFOFILE);
-	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) != NULL){ // while next line isn't blank // TODO this might need to be while the next 2 lines isn't blank
+	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) != NULL){ // while we haven't reached the end of the file
 		fputs(fileLineBuffer, tempFile);
+
 		// check to make sure the current session isn't already logged in
-		// check that there is an end time
-		copy_line(infoFile, tempFile); // read end time
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read end time
+		if(strcmp("_\n", fileLineBuffer) == 0){ // TODO change this symbol to a constant
+			printf("Previous session must be logged out before logging in.\n");
+			exit(0);
+		}
+		fputs(fileLineBuffer, tempFile);
+
 		copy_line(infoFile, tempFile); // read users in session
 
-		// if not, print that the session must be logged out first and exit program
-
-		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile);
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
 		while(strcmp(fileLineBuffer, "\n") != 0){
 			fputs(fileLineBuffer, tempFile);
-			copy_line(infoFile, tempFile);
-			copy_line(infoFile, tempFile);
+			copy_line(infoFile, tempFile); // reading driving start time
+			copy_line(infoFile, tempFile); // reading driving end time
 
-			fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile);
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
 		}
 		fputs(fileLineBuffer, tempFile);
 	}
@@ -58,7 +60,6 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 		fprintf(tempFile, "%s ", loginUsernames[i]); // but it shouldn't matter
 	fputs("\n", tempFile);
 	fputs("\n", tempFile);
-
 
 }
 void logout(){

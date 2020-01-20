@@ -114,7 +114,7 @@ char ** get_usernames(int * numUsernamesDest){
 
 // close file pointers, overwrite old .lablog files, delete temp files
 void cleanup_files(FILE * infoFile, FILE * tempInfoFile, FILE * logFile, FILE * tempLogFile){
-	rename(TEMPINFOFILE, INFOFILE); // TODO undo this comment
+	rename(TEMPINFOFILE, INFOFILE);
 
 	if(infoFile != NULL)
 		fclose(infoFile);
@@ -125,7 +125,7 @@ void cleanup_files(FILE * infoFile, FILE * tempInfoFile, FILE * logFile, FILE * 
 	if(tempLogFile != NULL)
 		fclose(tempLogFile);
 
-	remove(TEMPINFOFILE); // TODO undo this comment
+	remove(TEMPINFOFILE);
 	remove(TEMPLOGFILE);
 }
 
@@ -149,7 +149,6 @@ void info_file_not_found(){
 	fprintf(infoFile, "%s\n", providedUsername);
 	// there's an extra \n is here for some reason
 	fputs("# logs\n", infoFile);
-	// fputs("\n", infoFile); // FIXME this extra \n might not be needed
 
 	fclose(infoFile);
 
@@ -159,6 +158,9 @@ void info_file_not_found(){
 
 void file_read_error(char * fileName){
 	fprintf(stderr, "Error reading %s, aborting program\n", fileName);
+
+	// TODO need to handle intermittent temp file
+
 	exit(0);
 }
 
