@@ -149,7 +149,7 @@ void info_file_not_found(){
 	fprintf(infoFile, "%s\n", providedUsername);
 	// there's an extra \n is here for some reason
 	fputs("# logs\n", infoFile);
-	fputs("\n", infoFile); // FIXME this extra \n might not be needed
+	// fputs("\n", infoFile); // FIXME this extra \n might not be needed
 
 	fclose(infoFile);
 

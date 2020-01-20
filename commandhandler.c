@@ -26,16 +26,26 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 
 	// for each session logged,
 	char fileLineBuffer[FILELINEBUFFERSIZE] = "\0";
-	if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
-		file_read_error(INFOFILE);
-	while(strcmp("\n", fileLineBuffer) != 0){ // while next line isn't blank // TODO this might need to be while the next 2 lines isn't blank
+	// if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+	// 	file_read_error(INFOFILE);
+	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) != NULL){ // while next line isn't blank // TODO this might need to be while the next 2 lines isn't blank
+		fputs(fileLineBuffer, tempFile);
 		// check to make sure the current session isn't already logged in
-
 		// check that there is an end time
+		copy_line(infoFile, tempFile); // read end time
+		copy_line(infoFile, tempFile); // read users in session
 
 		// if not, print that the session must be logged out first and exit program
 
 		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile);
+		while(strcmp(fileLineBuffer, "\n") != 0){
+			fputs(fileLineBuffer, tempFile);
+			copy_line(infoFile, tempFile);
+			copy_line(infoFile, tempFile);
+
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile);
+		}
+		fputs(fileLineBuffer, tempFile);
 	}
 
 	// find the next empty line and go to the line after it
