@@ -1,4 +1,4 @@
-void login(char *, char *, int)();
+void login(FILE *, FILE *, char **, int, char **, int);
 void logout();
 void drive();
 void toggleBreak();

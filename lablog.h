@@ -6,6 +6,7 @@
 #define LOGFILE "log.lablog"
 #define TEMPLOGFILE "log.lablog.tmp"
 #define USERNAMEBUFFERSIZE 30
+#define FILELINEBUFFERSIZE 200
 
 char ** get_usernames(int *);
 void write_default_username(FILE *, char[]);

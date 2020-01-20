@@ -1,4 +1,5 @@
 #include "lablog.h"
+#include "commandhandler.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,17 +20,26 @@ int main(int argc, char* argv[]){
 
 	int numUsernames;
 	char ** usernames = get_usernames(&numUsernames);
-	printf("%s %s\n", usernames[0], usernames[1]);
+
+	infoFile = fopen(INFOFILE, "r");
+	tempInfoFile = fopen(TEMPINFOFILE, "w");
+
 
 	// FIXME might not need these after all
-	logFile = fopen(LOGFILE, "r");
-	tempLogFile = fopen(TEMPLOGFILE, "r");
+	// logFile = fopen(LOGFILE, "r");
+	// tempLogFile = fopen(TEMPLOGFILE, "r");
 
 	if(strcmp("login", argv[1]) == 0){
 		if(argv[2] == NULL)
 			print_help_menu();
 
-		// login(argv[2], usernames, numUsernames);
+		// TODO check that all given usernames are registered usernames
+		int numLoginUsernames = argc - 2;
+		char ** loginUsernames = malloc(numLoginUsernames * sizeof(char *));
+		for(int i = 2; i < argc; i++)
+			loginUsernames[i - 2] = argv[i];
+
+		login(infoFile, tempInfoFile, loginUsernames, numLoginUsernames, usernames, numUsernames);
 	}else if(strcmp("logout", argv[1]) == 0){
 
 	}else if(strcmp("drive", argv[1]) == 0){
@@ -55,9 +65,10 @@ int main(int argc, char* argv[]){
 // open the info file, get the usernames from the info file, store the number of usernames in numUsernameDest,
 // return a pointer to a string array of usernames, close the info file
 char ** get_usernames(int * numUsernamesDest){
+	// TODO this check should be done before this function is called
 	// check if temporary info file already exists
 	if(access(TEMPINFOFILE, F_OK) == false){ // TODO implement recovery (?)
-		fprintf(stderr, "Unexpectedly found %s at start of program\nAborting program\n", TEMPINFOFILE);
+		fprintf(stderr, "Unexpectedly found %s at start of program, aborting program\n", TEMPINFOFILE);
 		exit(0);
 	}
 
@@ -66,7 +77,7 @@ char ** get_usernames(int * numUsernamesDest){
 	if(infoFile == NULL) // if the info file doesn't exist
 		info_file_not_found();
 
-	// skip the usernames comment line in the info file
+	// skip the "# usernames" comment line in the info file
 	char usernameBuffer[USERNAMEBUFFERSIZE + 1] = "\0";
 	if(fgets(usernameBuffer, USERNAMEBUFFERSIZE, infoFile) == NULL)
 		file_read_error(INFOFILE);
@@ -103,7 +114,7 @@ char ** get_usernames(int * numUsernamesDest){
 
 // close file pointers, overwrite old .lablog files, delete temp files
 void cleanup_files(FILE * infoFile, FILE * tempInfoFile, FILE * logFile, FILE * tempLogFile){
-	rename(TEMPINFOFILE, INFOFILE);
+	rename(TEMPINFOFILE, INFOFILE); // TODO undo this comment
 
 	if(infoFile != NULL)
 		fclose(infoFile);
@@ -114,7 +125,7 @@ void cleanup_files(FILE * infoFile, FILE * tempInfoFile, FILE * logFile, FILE * 
 	if(tempLogFile != NULL)
 		fclose(tempLogFile);
 
-	remove(TEMPINFOFILE);
+	remove(TEMPINFOFILE); // TODO undo this comment
 	remove(TEMPLOGFILE);
 }
 
@@ -136,9 +147,11 @@ void info_file_not_found(){
 	fputs("# usernames\n", infoFile);
 	fputs("1\n", infoFile);
 	fprintf(infoFile, "%s\n", providedUsername);
-	// an extra \n is here for some reason
+	// there's an extra \n is here for some reason
 	fputs("# logs\n", infoFile);
 	fputs("\n", infoFile); // FIXME this extra \n might not be needed
+
+	fclose(infoFile);
 
 	printf("%s created. Please try your previous command again.\n", INFOFILE);
 	exit(0);
