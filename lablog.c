@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
 
 		login(infoFile, tempInfoFile, loginUsernames, numLoginUsernames, usernames, numUsernames);
 	}else if(strcmp("logout", argv[1]) == 0){
-
+		logout(infoFile, tempInfoFile);
 	}else if(strcmp("drive", argv[1]) == 0){
 
 	}else if(strcmp("break", argv[1]) == 0){

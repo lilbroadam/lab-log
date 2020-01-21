@@ -7,16 +7,11 @@ void skip_username_info(FILE *, FILE *);
 void copy_line(FILE *, FILE *);
 void write_current_datetime(FILE *);
 
-// TODO change to login multiple usernames at once
+
 // the given infoFile and tempFile should already be open when this function is called
 // the given usernames to login should already be confirmed to be registeredUsernames when this function is called
 void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLoginUsernames,
 		char * registeredUsernames[], int numRegisteredUsernames){
-	// TODO place holder to make sure function is being called; delete this print later
-	printf("logging in: ");
-	for(int i = 0; i < numLoginUsernames - 1; i++)
-		printf("%s, ", loginUsernames[i]);
-	printf("%s\n", loginUsernames[numLoginUsernames - 1]);
 
 	// forward past the username info
 	skip_username_info(infoFile, tempFile);
@@ -33,6 +28,9 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read end time
 		if(strcmp("_\n", fileLineBuffer) == 0){ // TODO change this symbol to a constant
 			printf("Previous session must be logged out before logging in.\n");
+			fclose(infoFile);
+			fclose(tempFile);
+			remove(TEMPINFOFILE);
 			exit(0);
 		}
 		fputs(fileLineBuffer, tempFile);
@@ -62,7 +60,40 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 	fputs("\n", tempFile);
 
 }
-void logout(){
+
+// the given infoFile and tempFile should already be open when this function is called
+// this function will logout all the users in the already logged in session (end the current session)
+void logout(FILE * infoFile, FILE * tempFile){
+	// forward past the username info
+	skip_username_info(infoFile, tempFile);
+
+	// read the "# logs" comment line in the info file
+	copy_line(infoFile, tempFile);
+
+	// for each session logged,
+	char fileLineBuffer[FILELINEBUFFERSIZE] = "\0";
+	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) != NULL){ // while we haven't reached the end of the file
+		fputs(fileLineBuffer, tempFile);
+
+		// check to make sure the current session isn't already logged out
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read end time
+		if(strcmp("_\n", fileLineBuffer) == 0) // replace blank end time with current time // TODO change this symbol to a constant
+			write_current_datetime(tempFile);
+		else
+			fputs(fileLineBuffer, tempFile);
+
+		copy_line(infoFile, tempFile); // read users in session
+
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
+		while(strcmp(fileLineBuffer, "\n") != 0){
+			fputs(fileLineBuffer, tempFile);
+			copy_line(infoFile, tempFile); // reading driving start time
+			copy_line(infoFile, tempFile); // reading driving end time
+
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
+		}
+		fputs(fileLineBuffer, tempFile);
+	}
 
 }
 
