@@ -172,26 +172,27 @@ void file_read_error(char * fileName){
 void print_help_menu(){
 	printf("lablog help menu:\n");
 	printf("-----------------\n");
-	printf("- lablog login <username>\n");
-	printf("  + log the login of the specified user\n");
+	printf("- lablog login [<username>]\n");
+	printf("  + login the specified users at the current time\n");
 	printf("\n");
-	printf("- lablog logout <username>\n");
-	printf("  + log the logout of the specified user\n");
+	printf("- lablog logout\n");
+	printf("  + logout the currently logged in users at the current time\n");
 	printf("\n");
-	printf("- lablog drive <username>\n");
-	printf("  + log the specified user as starting to drive\n");
+	printf("- lablog drive [<username>]\n");
+	printf("  + log the given users as starting to drive at the current time\n");
+	printf("  + any driver driving prior to this command will have their driver end time marked as the current time\n");
 	printf("\n");
-	printf("- lablog break <username>\n");
-	printf("  + toggle the specified user taking a break\n");
-	printf("\n");
-	printf("- lablog print\n");
-	printf("  + print the current log\n");
-	printf("\n");
-	printf("- lablog report\n");
-	printf("  + export the log into a txt file\n");
-	printf("\n");
-	printf("- lablog config [setting]\n");
-	printf("  + change differ settings\n"); // TODO update this as config becomes more defined
-	printf("\n");
+	// printf("- lablog break <username>\n");
+	// printf("  + toggle the specified user taking a break\n");
+	// printf("\n");
+	// printf("- lablog print\n");
+	// printf("  + print the current log\n");
+	// printf("\n");
+	// printf("- lablog report\n");
+	// printf("  + export the log into a txt file\n");
+	// printf("\n");
+	// printf("- lablog config [setting]\n");
+	// printf("  + change differ settings\n"); // TODO update this as config becomes more defined
+	// printf("\n");
 	exit(0);
 }
