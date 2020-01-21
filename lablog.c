@@ -43,7 +43,12 @@ int main(int argc, char* argv[]){
 	}else if(strcmp("logout", argv[1]) == 0){
 		logout(infoFile, tempInfoFile);
 	}else if(strcmp("drive", argv[1]) == 0){
+		int numDriverUsernames = argc - 2;
+		char ** driverUsernames = malloc(numDriverUsernames * sizeof(char *));
+		for(int i = 2; i < argc; i++)
+			driverUsernames[i - 2] = argv[i];
 
+		drive(infoFile, tempInfoFile, driverUsernames, numDriverUsernames);
 	}else if(strcmp("break", argv[1]) == 0){
 
 	}else if(strcmp("print", argv[1]) == 0){

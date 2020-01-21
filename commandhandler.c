@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
+void write_drive_info(FILE *, char **, int);
 void skip_username_info(FILE *, FILE *);
 void copy_line(FILE *, FILE *);
 void write_current_datetime(FILE *);
@@ -50,7 +52,7 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 
 	// find the next empty line and go to the line after it
 
-	// write the log in info for this session to the tempFile
+	// write the log in info for this session to the tempFile // TODO move this into its own function
 	write_current_datetime(tempFile); // <date> <time>
 	fputs("_\n", tempFile); // write a "_" while lab session hasn't ended
 	fprintf(tempFile, "%d ", numLoginUsernames);
@@ -63,6 +65,7 @@ void login(FILE * infoFile, FILE * tempFile, char * loginUsernames[], int numLog
 
 // the given infoFile and tempFile should already be open when this function is called
 // this function will logout all the users in the already logged in session (end the current session)
+// TODO how to prevent double logout?
 void logout(FILE * infoFile, FILE * tempFile){
 	// forward past the username info
 	skip_username_info(infoFile, tempFile);
@@ -75,7 +78,8 @@ void logout(FILE * infoFile, FILE * tempFile){
 	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) != NULL){ // while we haven't reached the end of the file
 		fputs(fileLineBuffer, tempFile);
 
-		// check to make sure the current session isn't already logged out
+		// TODO check to make sure the current session isn't already logged out
+
 		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read end time
 		if(strcmp("_\n", fileLineBuffer) == 0) // replace blank end time with current time // TODO change this symbol to a constant
 			write_current_datetime(tempFile);
@@ -87,8 +91,16 @@ void logout(FILE * infoFile, FILE * tempFile){
 		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
 		while(strcmp(fileLineBuffer, "\n") != 0){
 			fputs(fileLineBuffer, tempFile);
+
 			copy_line(infoFile, tempFile); // reading driving start time
-			copy_line(infoFile, tempFile); // reading driving end time
+
+			// reading driving end time
+			if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+				file_read_error(INFOFILE);
+			if(strcmp("_\n", fileLineBuffer) == 0){ // end the remaining driver
+				write_current_datetime(tempFile);
+			}else
+				fputs(fileLineBuffer, tempFile);
 
 			fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
 		}
@@ -97,8 +109,65 @@ void logout(FILE * infoFile, FILE * tempFile){
 
 }
 
-void drive(){
+void drive(FILE * infoFile, FILE * tempFile, char ** driverUsernames, int numDriverUsernames){
+	// forward past the username info
+	skip_username_info(infoFile, tempFile);
 
+	// read the "# logs" comment line in the info file
+	copy_line(infoFile, tempFile);
+
+	// for each session logged,
+	char fileLineBuffer[FILELINEBUFFERSIZE] = "\0";
+	bool foundLoggedInLog = false;
+	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) != NULL){ // while we haven't reached the end of the file
+		fputs(fileLineBuffer, tempFile);
+
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read end time
+		if(strcmp("_\n", fileLineBuffer) == 0) // TODO change this symbol to a constant
+			foundLoggedInLog = true;
+		fputs(fileLineBuffer, tempFile);
+
+		copy_line(infoFile, tempFile); // read users in this session
+
+		bool foundLoggedInDriver = false;
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
+		while(strcmp(fileLineBuffer, "\n") != 0){ // read driving logs in this session
+			fputs(fileLineBuffer, tempFile);
+
+			copy_line(infoFile, tempFile); // read driving start time
+
+			// read driving end time
+			if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+				file_read_error(INFOFILE);
+			if(strcmp("_\n", fileLineBuffer) == 0){ // if this driver is driving, end it // TODO change this symbol to a constant
+				foundLoggedInDriver = true;
+				write_current_datetime(tempFile); // write the end time for the previous driver
+				write_drive_info(tempFile, driverUsernames, numDriverUsernames); // write the info for the new driver
+			}else
+				fputs(fileLineBuffer, tempFile);
+
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile); // read users driving
+		}
+
+		if(!foundLoggedInDriver & foundLoggedInLog) // if this is the first driver of the log that is currently logged in
+			write_drive_info(tempFile, driverUsernames, numDriverUsernames);
+
+		fputs(fileLineBuffer, tempFile); // write the last thing read from the info file to the temp file
+
+	}
+
+}
+
+void write_drive_info(FILE * destination, char ** driverUsernames, int numDriverUsernames){
+	for(int i = 0; i < numDriverUsernames; i++) // write users driving
+		fprintf(destination, "%s ", driverUsernames[i]);
+	fprintf(destination, "\n");
+
+	// write driving start time
+	write_current_datetime(destination);
+
+	// writing driving end time (place holder)
+	fprintf(destination, "_\n"); // TODO change this symbol to a constant
 }
 
 void toggleBreak(){
@@ -157,7 +226,7 @@ void copy_line(FILE * source, FILE * destination){
 // source must already be open when this function is called
 // datetime will be written in the format mm/dd/yyyy hh:mmxm\n
 // this function was written while referencing https://www.techiedelight.com/print-current-date-and-time-in-c/
-void write_current_datetime(FILE * source){
+void write_current_datetime(FILE * source){ // TODO change this variable name to destination
 	time_t dateAndTime;
 	time(&dateAndTime);
 	struct tm * timeStruct = localtime(&dateAndTime);
