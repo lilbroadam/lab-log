@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 void write_drive_info(FILE *, char **, int);
 void skip_username_info(FILE *, FILE *);
@@ -109,6 +110,9 @@ void logout(FILE * infoFile, FILE * tempFile){
 
 }
 
+// TODO reject request when not logged in
+// TODO handle trying to drive a user who isn't logged in
+// TODO remove multiple drivers, change it to only 1 driver
 void drive(FILE * infoFile, FILE * tempFile, char ** driverUsernames, int numDriverUsernames){
 	// forward past the username info
 	skip_username_info(infoFile, tempFile);
@@ -178,8 +182,79 @@ void print(){
 
 }
 
-void report(){
+// export the data from the given source file (info.lablog) to <outputFileName>.txt
+// the given source file should already be opened when this function is called
+void export(FILE * source, char * outputFileName){
+	if(access(outputFileName, F_OK) == false){ // see if the given file name already exists
+		printf("The given file already exists. Do you want to overwrite it? (Y/N): ");
+		char promptBuffer[2] = "\0";
+		fgets(promptBuffer, 2, stdin);
 
+		if(strcmp("Y", promptBuffer) == 0 || strcmp("y", promptBuffer) == 0){
+			// TODO
+		}else if(strcmp("N", promptBuffer) == 0 || strcmp("n", promptBuffer) == 0){
+			// TODO
+		}else{
+			printf("Please enter Y or N\n");
+			// TODO loop
+		}
+	}
+
+	// TODO add .txt to end of outputFileName
+	FILE * outputFile = fopen(outputFileName, "w+"); // w+ to start writing the file from scratch
+	// TODO check if file pointer points to null
+
+	skip_username_info(source, NULL);
+
+	char * token;
+	char fileLineBuffer[FILELINEBUFFERSIZE] = "\0";
+	fgets(fileLineBuffer, FILELINEBUFFERSIZE, source); // read the "# logs" comment
+	while(fgets(fileLineBuffer, FILELINEBUFFERSIZE, source) != NULL){ // loop through eac session
+		// print start date, start time
+		token = strtok(fileLineBuffer, " \n"); // TODO make this delimiter a constant
+		fprintf(outputFile, "%s, ", token);
+		token = strtok(NULL, " \n");
+		fprintf(outputFile, "%s - ", token);
+
+		// print end time
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, source);
+		token = strtok(fileLineBuffer, " \n"); // skip end date
+		token = strtok(NULL, " \n");
+		fprintf(outputFile, "%s ", token);
+
+		// print loop through logged in users for this session // TODO this doesn't print well with 2 or less users
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, source);
+		token = strtok(fileLineBuffer, " \n");
+		int numUsers = atoi(token);
+		for(int i = 0; i < numUsers - 1; i++){
+			token = strtok(NULL, " \n");
+			fprintf(outputFile, "%s, ", token);
+		}
+		token = strtok(NULL, " \n");
+		fprintf(outputFile, "and %s, ", token);
+
+		// calculate session duration TODO
+		fprintf(outputFile, "TODO elapsed time\n");
+
+		fprintf(outputFile, "Driver order and time length:\n");
+		fgets(fileLineBuffer, FILELINEBUFFERSIZE, source); // get driver name
+		while(strcmp(fileLineBuffer, "\n") != 0){ // loop through drivers in the current session
+			token = strtok(fileLineBuffer, " \n");
+			fprintf(outputFile, "%s, ", token);
+
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, source); // get drive start time
+
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, source); // get drive end time
+
+			fprintf(outputFile, "TODO elapsed time\n");
+
+			fgets(fileLineBuffer, FILELINEBUFFERSIZE, source); // get driver name
+		}
+
+		fprintf(outputFile, "\n");
+	}
+
+	fclose(outputFile);
 }
 
 void config(){
@@ -189,26 +264,49 @@ void config(){
 // the given infoFile and tempFile should already be open at the start of this function
 // this function will copy all the username info from infoFile into tempFile, including
 // the following blank line. The infoFile's cursor will be in front of "# logs" at the end
-// of this function
+// of this function. If tempFile is null, the data from infoFile won't be copied to tempFile
+// TODO make this function cleaner
 void skip_username_info(FILE * infoFile, FILE * tempFile){
 	char fileLineBuffer[FILELINEBUFFERSIZE] = "\0";
 
-	// skip the usernames comment line in the info file
-	copy_line(infoFile, tempFile);
-
-	// get the number of usernames from the info file
-	if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
-		file_read_error(INFOFILE);
-	int numUsernames = atoi(fileLineBuffer);
-	fputs(fileLineBuffer, tempFile);
-
-	// get the usernames from the info file and place them into an array to return
-	for(int i = 0; i < numUsernames; i++)
-		// read the next username
+	if(tempFile != NULL){
+		// skip the usernames comment line in the info file
 		copy_line(infoFile, tempFile);
 
-	// skip the blank line after username info
-	copy_line(infoFile, tempFile);
+		// get the number of usernames from the info file
+		if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+			file_read_error(INFOFILE);
+		int numUsernames = atoi(fileLineBuffer);
+		fputs(fileLineBuffer, tempFile);
+
+		// get the usernames from the info file and place them into an array to return
+		for(int i = 0; i < numUsernames; i++)
+			// read the next username
+			copy_line(infoFile, tempFile);
+
+		// skip the blank line after username info
+		copy_line(infoFile, tempFile);
+
+	}else{
+		// skip the usernames comment line in the info file
+		if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+			file_read_error(INFOFILE);
+
+		// get the number of usernames from the info file
+		if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+			file_read_error(INFOFILE);
+		int numUsernames = atoi(fileLineBuffer);
+
+		// get the usernames from the info file and place them into an array to return
+		for(int i = 0; i < numUsernames; i++)
+			// read the next username
+			if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+				file_read_error(INFOFILE);
+
+		// skip the blank line after username info
+		if(fgets(fileLineBuffer, FILELINEBUFFERSIZE, infoFile) == NULL)
+			file_read_error(INFOFILE);
+	}
 
 	// at this point, the cursor of infoFile will be in front of "# logs"
 }

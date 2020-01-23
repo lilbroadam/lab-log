@@ -23,11 +23,14 @@ int main(int argc, char* argv[]){
 
 	infoFile = fopen(INFOFILE, "r");
 	tempInfoFile = fopen(TEMPINFOFILE, "w");
+	// TODO check if file pointer points to null
 
 
 	// FIXME might not need these after all
 	// logFile = fopen(LOGFILE, "r");
 	// tempLogFile = fopen(TEMPLOGFILE, "r");
+
+	bool updateInfoFile = true;
 
 	if(strcmp("login", argv[1]) == 0){
 		if(argv[2] == NULL)
@@ -51,19 +54,21 @@ int main(int argc, char* argv[]){
 		drive(infoFile, tempInfoFile, driverUsernames, numDriverUsernames);
 	}else if(strcmp("break", argv[1]) == 0){
 
-	}else if(strcmp("print", argv[1]) == 0){
+	}else if(strcmp("print", argv[1]) == 0){ // print log to console
 
-	}else if(strcmp("report", argv[1]) == 0){
-
+	}else if(strcmp("export", argv[1]) == 0){ // print log to file
+		export(infoFile, argv[2]);
+		updateInfoFile = false; // TODO change how this problem is dealt with
 	}else if(strcmp("config", argv[1]) == 0){
 
 	}else{
+		// TODO close temp info file
 		print_help_menu();
 	}
 
 	// TODO need to free malloc'ed usernames
 
-	cleanup_files(infoFile, tempInfoFile, logFile, tempLogFile);
+	cleanup_files(infoFile, tempInfoFile, updateInfoFile, logFile, tempLogFile);
 }
 
 
@@ -118,8 +123,9 @@ char ** get_usernames(int * numUsernamesDest){
 }
 
 // close file pointers, overwrite old .lablog files, delete temp files
-void cleanup_files(FILE * infoFile, FILE * tempInfoFile, FILE * logFile, FILE * tempLogFile){
-	rename(TEMPINFOFILE, INFOFILE);
+void cleanup_files(FILE * infoFile, FILE * tempInfoFile, bool renameInfoFile, FILE * logFile, FILE * tempLogFile){
+	if(renameInfoFile)
+		rename(TEMPINFOFILE, INFOFILE);
 
 	if(infoFile != NULL)
 		fclose(infoFile);
@@ -134,6 +140,8 @@ void cleanup_files(FILE * infoFile, FILE * tempInfoFile, FILE * logFile, FILE * 
 	remove(TEMPLOGFILE);
 }
 
+// TODO maybe change this function name to create_info_file()?
+// TODO might not need usernames in the info file after all?
 void info_file_not_found(){
 	fprintf(stderr, "File \"%s\" not found, creating file...\n", INFOFILE);
 
@@ -152,7 +160,7 @@ void info_file_not_found(){
 	fputs("# usernames\n", infoFile);
 	fputs("1\n", infoFile);
 	fprintf(infoFile, "%s\n", providedUsername);
-	// there's an extra \n is here for some reason
+	// there's an extra \n here from providedUsername
 	fputs("# logs\n", infoFile);
 
 	fclose(infoFile);
@@ -161,6 +169,7 @@ void info_file_not_found(){
 	exit(0);
 }
 
+// TODO add another string to provide a better description of the error
 void file_read_error(char * fileName){
 	fprintf(stderr, "Error reading %s, aborting program\n", fileName);
 
@@ -186,11 +195,11 @@ void print_help_menu(){
 	// printf("  + toggle the specified user taking a break\n");
 	// printf("\n");
 	// printf("- lablog print\n");
-	// printf("  + print the current log\n");
+	// printf("  + print the current log to the console\n");
 	// printf("\n");
-	// printf("- lablog report\n");
-	// printf("  + export the log into a txt file\n");
-	// printf("\n");
+	printf("- lablog export <filename>\n");
+	printf("  + export the log to <filename>.txt\n");
+	printf("\n");
 	// printf("- lablog config [setting]\n");
 	// printf("  + change differ settings\n"); // TODO update this as config becomes more defined
 	// printf("\n");
