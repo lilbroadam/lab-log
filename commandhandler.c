@@ -320,10 +320,13 @@ void elapsed_time(char * start, char * end, char * destination){
 		totalHours = ((24 - startHour) + endHour - 1);
 	}
 
+	if(endHour > startHour && startMinute > endMinute)
+		totalHours--;
+
 	tempStart = 60 - startMinute;
 	tempEnd = 60 - endMinute;
 
-	if(tempStart > tempEnd){
+	if(tempStart >= tempEnd){
 		totalMinutes = tempStart - tempEnd;
 	}
 	else if (tempEnd > tempStart){
