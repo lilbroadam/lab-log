@@ -3,5 +3,5 @@ void logout(FILE *, FILE *);
 void drive(FILE *, FILE *, char **, int);
 void toggleBreak();
 void print();
-void report();
+void export(FILE *, char *);
 void config();

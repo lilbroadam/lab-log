@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define INFOFILE "info.lablog"
 #define TEMPINFOFILE "info.lablog.tmp"
@@ -10,7 +11,7 @@
 
 char ** get_usernames(int *);
 void write_default_username(FILE *, char[]);
-void cleanup_files(FILE *, FILE *, FILE *, FILE *);
+void cleanup_files(FILE *, FILE *, bool, FILE *, FILE *);
 
 void info_file_not_found();
 void file_read_error(char * fileName);
